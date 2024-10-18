@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #ddd;
+        }
+        .header img {
+            max-width: 80%; 
+            height: auto;   
+        }
+        .header h1 {
+            margin: 10px 0;
+            font-size: 1em;
+            color: #333;
+        }
+        .banner {
+            background-color: #e9ecef;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.75em;
+            color: #555;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .project {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .title {
+            font-size: 0.8em;
+            color: #007bff;
+            flex: 1;
+        }
+        .copy-icon {
+            cursor: pointer;
+            color: #007bff;
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: color 0.3s;
+        }
+        .copy-icon:hover {
+            color: #0056b3;
+        }
+        .content {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .content p {
+            margin: 0;
+        }
+        .back-link {
+            font-size: 10px;
+            color: #007bff;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 2px;
+            transition: background-color 0.3s;
+        }
+        .back-link:hover {
+            background-color: #e0e0e0;
+        }
+        .go-btn {
+            background-color: #007bff;
+            color: white;
+            border: 2px solid #007bff;
+            border-radius: 25px;
+            padding: 5px 10px;
+            font-size: 0.6em;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            margin: 2px;
+        }
+        .go-btn:hover {
+            background-color: white;
+            color: #007bff;
+        }
+        .small-text {
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="https://proiniciar.uerj.br/pluginfile.php/1/theme_adaptable/logo/1709829991/Daiaie%20Coordenadoria%20de%20Inicia%C3%A7%C3%A3o%20COR.png" alt="Logo">
+        <h1>Projetos Cetreina 2024 | PR-1 | Administração</h1>
+    </div>
+
+    <div class="back-button">
+        <a href="https://proiniciar.uerj.br/course/index.php?categoryid=21" class="back-link">← Voltar</a>
+    </div>
+
+    <div class="banner">
+        Lembre-se: É essencial copiar e colar o título do projeto na inscrição!
+    </div>
+
+    <div class="container" id="projectList"></div> 
+
+    <script>
+        // Função para ler e processar o arquivo CSV
+        async function loadProjects() {
+            const response = await fetch('ADM_cetreina.csv');
+            const data = await response.text();
+            const lines = data.split('\n').slice(1); // Ignora a linha do cabeçalho
+            const container = document.getElementById('projectList');
+
+            lines.forEach((line, index) => {
+                const [nome, resumo, coordenador] = line.split(',').map(item => item.replace(/(^"|"$)/g, '').trim());
+
+                // Remove possíveis aspas remanescentes do nome do coordenador
+                const coordenadorLimpo = coordenador.replace(/(^"|"$)/g, '').trim();
+
+                // Cria os elementos HTML dinamicamente
+                const projectDiv = document.createElement('div');
+                projectDiv.classList.add('project');
+
+                const titleContainer = document.createElement('div');
+                titleContainer.classList.add('title-container');
+                titleContainer.onclick = () => toggleContent(`content${index}`);
+
+                const titleDiv = document.createElement('div');
+                titleDiv.classList.add('title');
+                titleDiv.textContent = nome;
+
+                const copyIcon = document.createElement('i');
+                copyIcon.classList.add('fas', 'fa-copy', 'copy-icon');
+                copyIcon.onclick = (event) => copyTitle(event, nome);
+
+                titleContainer.appendChild(titleDiv);
+                titleContainer.appendChild(copyIcon);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('content');
+                contentDiv.id = `content${index}`;
+                contentDiv.innerHTML = `<p><strong>Resumo:</strong> ${resumo}</p>
+                                        <p><strong>Coordenador(a):</strong> <span class="small-text">${coordenadorLimpo}</span></p>
+                                        <p>
+                                            <button class="go-btn" onclick="goToInsc()">Clique aqui e inscreva-se</button>
+                                            <button class="go-btn" onclick="goToPerf()">Preencha o formulário de perfil</button>
+                                        </p>`;
+
+                projectDiv.appendChild(titleContainer);
+                projectDiv.appendChild(contentDiv);
+                container.appendChild(projectDiv);
+            });
+        }
+
+        // Carrega os projetos ao iniciar a página
+        loadProjects();
+        
+        function toggleContent(contentId) {
+            var content = document.getElementById(contentId);
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function copyTitle(event, titleText) {
+            var tempInput = document.createElement("input");
+            tempInput.value = titleText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("Título copiado: " + titleText);
+            event.stopPropagation(); // Impede o toggle quando clica no ícone
+        }
+
+        function goToInsc() {
+            window.location.href = "https://www.formularios.uerj.br/index.php/83743?lang=pt-BR";
+        }
+
+        function goToPerf() {
+            window.location.href = "https://www.formularios.uerj.br/index.php/2?lang=pt-BR";
+        }
+
+        document.querySelectorAll('.title-container').forEach(container => {
+        const titleText = container.querySelector('.title').innerText;
+
+        // Cria o novo HTML
+        const newHTML = `
+            <div class="title-container" onclick="toggleContent('content0')">
+                <div class="title">${titleText}</div>
+                <i class="fas fa-copy copy-icon" onclick="copyTitle(event, '${titleText}')"></i>
+            </div>
+        `;
+
+        // Substitui o conteúdo
+        container.outerHTML = newHTML;
+    }); 
+    </script>
+</body>
+</html>
